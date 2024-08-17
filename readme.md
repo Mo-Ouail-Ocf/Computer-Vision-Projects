@@ -35,6 +35,12 @@ conda activate cv_projects_env
 
 - Make sure you have Conda installed.
 - The projects are compatible with Python 3.11.
+- Preferably , run the code in cloud providers 
+- My code was run on **[Lightning AI](https://lightning.ai/)
+
+## Code Organisation :
+- Most of the projects are split into 4 script files : data , utils , model & main to make code modular and readable
+- To run most of the projects , execute main.py file
 
 ## References
 
