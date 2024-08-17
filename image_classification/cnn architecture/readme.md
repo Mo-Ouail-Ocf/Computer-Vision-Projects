@@ -4,6 +4,6 @@
 
 - Model was trained in Lightning AI
 
-- Code split into 3 files : data , model & main to split concenrs & organise
+- Code split into 3 files : data , model & main to organise & make code modular
 
-- I used pytorch ignite in order to monitor & evaluate training
+- I used pytorch ignite in order to monitor & evaluate training using the well desgined event system
