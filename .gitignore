@@ -2,3 +2,6 @@ cat-and-dog/
 __pycache__/
 images/
 *.csv
+cropped/
+females/
+males/
