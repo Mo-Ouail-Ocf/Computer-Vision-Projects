@@ -1,5 +1,6 @@
 from torch.utils.data import DataLoader , Dataset
 from torchsummary import summary
+from torch_snippets import show
 import os
 from sklearn.model_selection import train_test_split
 import pathlib
@@ -84,6 +85,7 @@ train_dataset = BusTruckDataset(file_names=train_files,transform=transform,label
 if __name__=="__main__":
     img_path,img_t , targets = next(iter(test_dataset))
     img = Image.open(img_path).resize((224,224), resample=Image.BILINEAR)
+    show(img,bbs=targets['boxes'].cpu().numpy(),texts=targets['labels'].cpu().numpy())
     
    
 
