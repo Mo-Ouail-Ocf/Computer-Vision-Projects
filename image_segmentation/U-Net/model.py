@@ -2,9 +2,6 @@ from torchvision.models.vgg import vgg16_bn
 import torch.nn as nn
 import torch
 
-model = vgg16_bn(pretrained=True)
-
-
 
 def conv(in_features:int , out_features:int,nb_blocks=3)->nn.Module:
     block = nn.Sequential()
@@ -82,3 +79,10 @@ class UNet(nn.Module):
 
         return out
     
+
+def get_model(num_classes,device='cuda')->tuple[nn.Module,nn.CrossEntropyLoss,torch.optim.Adam]:
+    model = UNet(num_classes).to(device)
+    loss_fn = nn.CrossEntropyLoss()
+    optim = torch.optim.Adam(params=model.parameters())
+    return model ,loss_fn, optim
+
