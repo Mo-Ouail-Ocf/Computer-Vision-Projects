@@ -4,9 +4,10 @@ from model import get_model
 import torch
 from data import train_dl
 
-NUM_CLASSES = 12
 
-unet_model , loss_fn , optimizer = get_model(12,'cuda')
+NUM_CLASSES = 14
+
+unet_model , loss_fn , optimizer = get_model(NUM_CLASSES,'cuda')
 
 def train_step(engine,batch):
     unet_model.train()
@@ -20,7 +21,7 @@ def train_step(engine,batch):
 
 @torch.no_grad
 def valid_step(engine,batch):
-    unet_model.valid()
+    unet_model.eval()
     imgs , targets = batch # tagets shape : (batch_size ,w,h)
     predictions = unet_model(imgs) # shape : (batch_size , num_classes , w , h)
     return predictions,targets
@@ -32,9 +33,4 @@ attach_ignite(trainer,evaluator,unet_model,loss_fn)
 
 
 if __name__=="__main__":
-    trainer.run(train_dl)
-
-
-
-
-
+    trainer.run(train_dl,max_epochs=15)

@@ -66,8 +66,11 @@ train_dl = DataLoader(train_dataset,shuffle=True,batch_size=1)
 
 
 if __name__=="__main__":
-    img1 , img2 = train_dataset[15] 
-    fig, axes = plt.subplots(nrows=1, ncols=2, figsize=(12, 6))
+    for i in range(len(train_dataset)):
+        img1 , img2 = train_dataset[i] 
+        print(img2.min())
+    
+    """ fig, axes = plt.subplots(nrows=1, ncols=2, figsize=(12, 6))
 
     # Display the first image
     axes[0].imshow(unnormalize(img1).cpu().permute(1,2,0))  # Convert CHW to HWC for display
@@ -82,8 +85,8 @@ if __name__=="__main__":
     axes[1].set_yticks([])
 
     # Add a colorbar for the second image
-    fig.colorbar(cbar_img, ax=axes[1])
+    fig.colorbar(cbar_img, ax=axes[1]) """
 
-    plt.show()
+    #plt.show()
 
  

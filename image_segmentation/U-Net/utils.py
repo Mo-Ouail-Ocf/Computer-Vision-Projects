@@ -18,15 +18,8 @@ def attach_ignite(
     
     pb_bar = ProgressBar()
     pb_bar.attach(trainer, output_transform=lambda x: {'loss': x})
-    # Metrics :
-    def thresholded_output_transform(output):
-        predictions,targets=output
-        predictions =torch.argmax(F.softmax(targets,dim=1),dim=1)
-        return predictions,targets
     
-    accuracy=Accuracy(output_transform=thresholded_output_transform)
-    accuracy.attach(evaluator,name='accuracy')
-
+    
     loss_metric = Loss(loss_fn) 
     loss_metric.attach(evaluator,name='loss')
    # Events :
@@ -37,8 +30,7 @@ def attach_ignite(
         print("----------\n")
         print(f"> Batch {trainer.state.epoch} \n")
         print(f"> Train loss : {trainer.state.output} \n")
-        print(f"> Validation accuracy in classification : {metrics['loss']}")
-        print(f"> Validation loss in age prediction : {metrics['accuracy']}")
+        print(f"> Validation loss  : {metrics['loss']}")
 
 
     # tb logging :
@@ -60,14 +52,14 @@ def attach_ignite(
     )
 
     def score_function(engine):
-        return engine.state.metrics["accuracy"]
+        return engine.state.metrics["loss"]
     
     model_checkpoint = ModelCheckpoint(
     "checkpoint",
     n_saved=2,
     filename_prefix="best",
     score_function=score_function,
-    score_name="accuracy",
+    score_name="loss",
     global_step_transform=global_step_from_engine(trainer),
     )
     evaluator.add_event_handler(Events.COMPLETED, model_checkpoint, {"model": model})
