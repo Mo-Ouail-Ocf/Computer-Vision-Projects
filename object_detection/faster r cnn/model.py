@@ -19,4 +19,3 @@ if __name__=="__main__":
     model ,_ = get_model()
     print(model)
 
-# demotivated , will pursue tommorow morning , now i will work on image generation w/ GANs 
