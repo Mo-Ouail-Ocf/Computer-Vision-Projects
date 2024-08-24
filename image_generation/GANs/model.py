@@ -80,11 +80,10 @@ def get_gen_disc()->tuple[Generator, torch.optim.Adam, Discriminator, torch.opti
 
 def calc_disc_loss(model_disc:Discriminator,loss_fn,batch:torch.Tensor,targets:torch.Tensor):
     preds = model_disc(batch)
-    assert isinstance(preds,torch.Tensor)
-    preds = preds.squeeze()
+    preds = preds.squeeze() # (batch_size,)
     return loss_fn(preds,targets)
 
-def get_synth_images(model_gen:Generator,nb_images:int,train=False,device='cuda')->torch.Tensor:
+def get_synth_images(model_gen:Generator,nb_images:int,train=False,device='cuda'):
     if train:
         model_gen.train()
         z = torch.randn(size=(nb_images,100,1,1)).to(device)
@@ -95,24 +94,24 @@ def get_synth_images(model_gen:Generator,nb_images:int,train=False,device='cuda'
             z = torch.randn(size=(nb_images,100,1,1)).to(device)
             return model_gen(z)
 
-def disc_train_step(model_disc:Discriminator,loss_fn,real_data_batch :torch.Tensor, fake_data_batch:torch.Tensor):
+def disc_train_step(model_disc:Discriminator,loss_fn,real_data_batch :torch.Tensor, fake_data_batch:torch.Tensor,device='cuda'):
     model_disc.train()
     len_real = real_data_batch.shape[0]
-    targets_real = torch.ones(len_real)
+    targets_real = torch.ones(len_real,dtype=torch.float32).to(device)
 
     len_fake = fake_data_batch.shape[0]
-    targets_fake = torch.zeros(len_fake)
+    targets_fake = torch.zeros(len_fake,dtype=torch.float32).to(device)
 
     loss_real , loss_fake = calc_disc_loss(model_disc,loss_fn,real_data_batch,targets_real),\
                          calc_disc_loss(model_disc,loss_fn,fake_data_batch,targets_fake)
     
     return loss_fake+loss_real
 
-def gen_train_step(model_gen:Generator,model_disc:Discriminator,nb_images:int,loss_fn):
+def gen_train_step(model_gen:Generator,model_disc:Discriminator,nb_images:int,loss_fn,device='cuda'):
     synth_imgs = get_synth_images(model_gen,nb_images,train=True)
 
     # get preds
-    targets_fake = torch.ones(nb_images)
+    targets_fake = torch.ones(nb_images).to(device)
 
     model_disc.eval()
     
@@ -123,8 +122,10 @@ def gen_train_step(model_gen:Generator,model_disc:Discriminator,nb_images:int,lo
 
 if __name__=="__main__":
     model_disc = Discriminator().to('cuda')
-    x = torch.zeros((2,3,64,64)).to('cuda')
-    y= model_disc(x)
-    assert isinstance(y,torch.Tensor)
-    y = y.squeeze()
-    print('y shape : ',y.shape)
+    model_gen = Generator().to('cuda')
+    image_shape = (3,64,64)
+    z_shape = (100,1,1)
+
+    print(summary(model_disc,image_shape))
+
+    print(summary(model_gen,z_shape))

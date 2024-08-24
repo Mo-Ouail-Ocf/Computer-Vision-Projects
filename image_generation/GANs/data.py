@@ -7,6 +7,7 @@ import torch
 from PIL import Image
 CURR_PATH = pathlib.Path(__file__).parent
 
+
 DATA_PATH_F = CURR_PATH / 'females'
 DATA_PATH_M = CURR_PATH / 'males'
 CROPPED_IMGS_PATH = CURR_PATH / 'cropped'
@@ -75,7 +76,7 @@ class FacesDataset(Dataset):
 
 face_dataset = FacesDataset(transform,cropped_files)
 
-face_dl = DataLoader(face_dataset,shuffle=True,batch_size=64)
+face_dl = DataLoader(face_dataset,shuffle=True,batch_size=64,num_workers=4)
 
 
 if __name__=="__main__":
