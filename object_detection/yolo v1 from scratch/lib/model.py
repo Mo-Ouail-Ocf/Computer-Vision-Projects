@@ -1,7 +1,7 @@
 import torch.nn as nn
 import torch
 import typing as tt
-
+import numpy as np
 
 
 # Tuple (kernel_size,nb_channels,stride,padding)
@@ -49,9 +49,30 @@ def create_conv_net(in_channels:int,conv_config:ConvConfigList)->nn.Sequential:
                     in_channels = out_channels
     return net
 
+class YoloV1(nn.Module):
+    def __init__(self,channels_in,conv_config:ConvConfigList,nb_boxes:int,nb_classes:int):
+        super(YoloV1,self).__init__()
+        self.conv_blocks = create_conv_net(channels_in,conv_config)
+        
+        self.out_conv_shape = self.conv_blocks(torch.zeros((1,3,448,448))).shape 
+        self.grid = self.out_conv_shape[2] # S
+        self.nb_classes = nb_classes # C
+        self.nb_boxes = nb_boxes # B : per cell
 
+        out_flatten = np.prod(tuple(self.out_conv_shape))
+        self.fc = nn.Sequential(
+            nn.Flatten(),
+            nn.Linear(out_flatten,496),
+            nn.ReLU(), # original paper : 4096 ; cheating for VRAM :(
+            nn.Dropout(0.5),
+            nn.LeakyReLU(0.1),
+            nn.Linear(496,(self.grid**2)*(self.nb_classes+self.nb_boxes*5)) # (batch_size , S*S+5*B+C) -> to be reshaped
 
-    
+        )
+
+    def forward(self,x):
+        out = self.conv_blocks(x)
+        return self.fc(out)
 
 conv_config:ConvConfigList = [
     (7,64,2,3) , # from 448 to 112
@@ -63,7 +84,7 @@ conv_config:ConvConfigList = [
     (1,256,1,0),    
     (3,512,1,1),
     "M",
-    [(1,256,1,0),(3,512,3,1),4],
+    [(1,256,1,0),(3,512,1,1),4],
     (1,512,1,0),
     (3,1024,1,1),
     "M",
@@ -74,10 +95,9 @@ conv_config:ConvConfigList = [
     (3,1024,1,1),
 ]
 
+conv_blocks = YoloV1(3,conv_config,2,20)
+out_conv_shape = conv_blocks(torch.zeros((1,3,448,448))).shape
 
-net = create_conv_net(3,conv_config)
 
 
-x = torch.zeros(1,3,448,448)
-print(net(x).shape)
-
+print(out_conv_shape)
