@@ -69,4 +69,3 @@ def IoU(boxes_pred:Tensor,boxes_labels:Tensor,box_shape:str="midpoint"):
     union = area_pred + area_label - intersection
 
     return intersection / (union+1e-6)
-
