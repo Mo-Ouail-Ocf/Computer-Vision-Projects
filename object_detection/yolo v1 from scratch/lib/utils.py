@@ -69,3 +69,27 @@ def IoU(boxes_pred:Tensor,boxes_labels:Tensor,box_shape:str="midpoint"):
     union = area_pred + area_label - intersection
 
     return intersection / (union+1e-6)
+
+
+def nms(boxes:list,
+        iou_thereshold:float,
+        confidence_threshold:float,
+        box_format="corners",
+):
+    # boxes = [ [ class,confidence,x1,y1,x2,y2 ] ...  ]
+    
+    boxes = [
+        box for box in boxes if box[1] >confidence_threshold
+    ]
+    boxes = sorted(boxes,key=lambda x:x[1])
+    boxes_after_nms =[]
+    while boxes:
+        chosen_box = boxes.pop(0)
+        boxes_after_nms.append(chosen_box)
+        boxes = [
+            box for box in boxes if box[0]!=chosen_box or IoU(box[2:],chosen_box[2:],box_format)>iou_thereshold
+        ]
+    return boxes_after_nms
+
+
+
