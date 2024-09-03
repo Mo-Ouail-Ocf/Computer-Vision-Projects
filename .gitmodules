@@ -1,0 +1,3 @@
+[submodule "image_generation/pix2pix_from_scratch"]
+	path = image_generation/pix2pix_from_scratch
+	url = https://github.com/Mo-Ouail-Ocf/pix2pix_from_scratch.git
