@@ -6,10 +6,10 @@ from data import train_dl
 import torch
 from config import Config
 from ignite.engine import Engine ,Events
-import logging
 from utils import attach_ignite
 
 gen,disc,bce_loss,l1_loss,gen_optim,disc_optim =get_gen_disc()
+
 
 
 def train_step(engine,batch):
@@ -56,27 +56,12 @@ def train_step(engine,batch):
     gen_optim.step()
 
     return {
-        'Generator loss : ',g_loss.item(),
-        'Discriminator loss : ',d_loss.item()
+        'generator_loss':g_loss.item(),
+        'discriminator_loss':d_loss.item(),
     }
 
-@torch.no_grad
-def eval_step(engine,batch):
-    input_images , real_output_images = batch
-    fake_images = gen(input_images)
-
-    input_images = input_images.cpu().detach()
-    real_output_images = real_output_images.cpu().detach()
-    fake_images=fake_images.cpu().detach()
-
-    return {
-        'input_images':input_images,
-        'generated_images':fake_images,
-        'target_images':real_output_images
-    }
 
 trainer = Engine(train_step)
-evaluator= Engine(eval_step)
 
 
 checkpoint_handler = Checkpoint(
@@ -88,12 +73,15 @@ checkpoint_handler = Checkpoint(
         save_handler=DiskSaver('pix2pix_models', create_dir=True,require_empty=False),  
         n_saved=2,  # Number of checkpoints to keep
         filename_prefix='model',  # Prefix for the checkpoint filenames
-        global_step_transform=lambda engine, event: engine.state.epoch  # Naming based on iterations
+        global_step_transform=lambda engine, event: engine.state.epoch  
     )
 
 trainer.add_event_handler(Events.EPOCH_COMPLETED, checkpoint_handler)
 
-attach_ignite(trainer,evaluator)
+
+
+
+attach_ignite(trainer,gen)
 
 if __name__=="__main__":
     trainer.run(train_dl,max_epochs=100)

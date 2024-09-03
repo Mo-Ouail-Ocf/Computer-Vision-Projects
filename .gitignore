@@ -12,3 +12,5 @@ checkpoint/
 notes.md
 data/
 pix2pix_dataset/
+pix2pix_models/
+pix2pix_log/

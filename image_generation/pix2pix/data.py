@@ -5,6 +5,10 @@ import albumentations as A
 from albumentations.pytorch import ToTensorV2
 from config import Config
 import numpy as np
+from torchvision.utils import make_grid
+
+from ignite.handlers.tensorboard_logger import TensorboardLogger
+
 data_path = Path(__file__).parent / 'pix2pix_dataset' / 'maps' / 'maps' 
 
 train_path = data_path / 'train'
@@ -61,7 +65,6 @@ train_dl = DataLoader(
     dataset=train_ds,
     batch_size=Config.BATCH_SIZE,
     drop_last=True,
-    num_workers=Config.NUM_WORKERS,
     shuffle=True
 )
 
@@ -69,6 +72,26 @@ valid_dl = DataLoader(
     dataset=val_ds,
     batch_size=Config.BATCH_SIZE,
     drop_last=True,
-    num_workers=Config.NUM_WORKERS,
-    shuffle=True
+    shuffle=False
 )
+
+if __name__ == "__main__":
+    # Get a batch from the validation dataloader
+    batch = next(iter(valid_dl))
+    input_images, real_output_images = batch
+
+    input_images = input_images.cpu().detach()
+    real_output_images = real_output_images.cpu().detach()
+
+
+    input_grid = make_grid(input_images, nrow=4, normalize=True, value_range=(-1, 1))
+    output_grid = make_grid(real_output_images, nrow=4, normalize=True, value_range=(-1, 1))
+
+    
+    tb_logger = TensorboardLogger('./log_imgs_test')
+
+    # Log the images
+    tb_logger.writer.add_image("Inputs", input_grid, 0)
+    tb_logger.writer.add_image("Outputs", output_grid, 0)
+    tb_logger.close()
+

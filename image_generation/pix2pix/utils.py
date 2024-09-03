@@ -8,49 +8,55 @@ from ignite.contrib.handlers import tqdm_logger
 
 from data import valid_dl
 
+import torch
 def attach_ignite(
         trainer:Engine,
-        evaluator:Engine
+        gen
 ):
     
     tb_logger = TensorboardLogger(log_dir ='./pix2pix_log')
 
-    tqdm_train = tqdm_logger.ProgressBar().attach(trainer)
-    
+    tqdm_train = tqdm_logger.ProgressBar().attach(trainer,output_transform=lambda x:x)
 
-    def log_generated_images(engine, logger, event_name):
-
-        global_step = trainer.state.epoch
-        state = engine.state
-
-        input_images = (state.output['input_images']+1)/2 *255
-        generated_images = (state.output['generated_images']+1)/2 * 255
-        target_images = (state.output['target_images']+1)/2*255
-        
-        input_grid = make_grid(input_images, padding=2)
-        generated_grid = make_grid(generated_images, padding=2)
-        target_grid = make_grid(target_images, padding=2)
-        
-        logger.writer.add_image(tag='Input Images', img_tensor=input_grid, global_step=global_step, dataformats='CHW')
-        logger.writer.add_image(tag='Generated Images', img_tensor=generated_grid, global_step=global_step, dataformats='CHW')
-        logger.writer.add_image(tag='Target Images', img_tensor=target_grid, global_step=global_step,dataformats='CHW')
-
-    tb_logger.attach(evaluator, 
-                 log_handler=log_generated_images, 
-                 event_name=Events.EPOCH_COMPLETED)
     
     tb_logger.attach_output_handler(
         engine=trainer,
         event_name=Events.EPOCH_COMPLETED,
         tag='train',
-        output_transform=lambda x:x
+        output_transform=lambda x: {
+            'g_loss':x['generator_loss'],
+            'd_loss':x['discriminator_loss']
+        }
     )
 
-    @trainer.on(Events.EPOCH_COMPLETED)
-    def run_valid(engine):
-        evaluator.run(valid_dl)
+    def log_generated_images(engine, logger, gen, epoch):
+        gen.eval()
+        with torch.no_grad():
+            batch = next(iter(valid_dl))
+            input_images, real_output_images = batch
+            
+            # Generate fake images
+            fake_imgs = gen(input_images)
 
-    
+            # Prepare the images to be logged
+            input_grid = make_grid(input_images, normalize=True, value_range=(-1, 1))
+            fake_grid = make_grid(fake_imgs, normalize=True, value_range=(-1, 1))
+            real_grid = make_grid(real_output_images, normalize=True, value_range=(-1, 1))
+
+            # Log the images
+            logger.writer.add_image('input_images', input_grid, epoch)
+            logger.writer.add_image('fake_images', fake_grid, epoch)
+            logger.writer.add_image('real_images', real_grid, epoch)
+        
+    @trainer.on(Events.EPOCH_COMPLETED)
+    def log_images(engine):
+        epoch = engine.state.epoch
+        log_generated_images(engine, tb_logger, gen, epoch)
+
+
+
+
+
 
     
     
