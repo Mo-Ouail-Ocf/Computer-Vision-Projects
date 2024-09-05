@@ -1,3 +1,6 @@
 [submodule "image_generation/pix2pix_from_scratch"]
 	path = image_generation/pix2pix_from_scratch
 	url = https://github.com/Mo-Ouail-Ocf/pix2pix_from_scratch.git
+[submodule "image_generation/Cycle-GAN-StyleTransfer"]
+	path = image_generation/Cycle-GAN-StyleTransfer
+	url = https://github.com/Mo-Ouail-Ocf/Cycle-GAN-StyleTransfer
